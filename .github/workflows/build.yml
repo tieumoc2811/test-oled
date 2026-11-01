@@ -1,0 +1,25 @@
+name: Build OLED test
+on:
+  push:
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Cai toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake gcc-arm-none-eabi libnewlib-arm-none-eabi libstdc++-arm-none-eabi-newlib build-essential python3
+      - name: Lay Pico SDK 2.1.1
+        run: git clone --depth 1 --branch 2.1.1 --recurse-submodules --shallow-submodules https://github.com/raspberrypi/pico-sdk "$HOME/pico-sdk"
+      - name: Build
+        run: |
+          export PICO_SDK_PATH="$HOME/pico-sdk"
+          mkdir -p build && cd build
+          cmake .. -DPICO_BOARD=pico
+          make -j$(nproc)
+      - uses: actions/upload-artifact@v4
+        with:
+          name: oled_test_uf2
+          path: build/oled_test.uf2
